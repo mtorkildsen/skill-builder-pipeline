@@ -1,0 +1,257 @@
+# canonical-paths.yaml
+# Single source of truth for every canonical artifact in the skill-pipeline plugin.
+# Maintained per the spec at ${CLAUDE_PLUGIN_ROOT}/specs/canonical-paths-registry.md
+# Rule: every writer and every reader of a canonical file cites by id, not by
+# hardcoded path. When this file changes, the corresponding SKILL.md citations
+# must be grepped and updated in the same commit.
+
+version: "1.0.0"
+
+entries:
+
+  # ─── State files ────────────────────────────────────────────────────────────
+
+  - id: pipeline-state
+    path: pipeline-state.json
+    type: state-file
+    producer: skill-pipeline-orchestrator
+    consumers: [planning-sesh, handoff-sesh, build-sesh, qa-sesh]
+    notes: Orchestrator state — written at init, updated after each stage completes
+
+  # ─── Skill artifacts (produced during a build, at target-skill root) ────────
+
+  - id: design-doc
+    path: design/design-doc.md
+    type: skill-artifact
+    producer: planning-sesh
+    consumers: [handoff-sesh, build-sesh]
+    notes: Stage 1 output — full design document from planning-sesh interview
+
+  - id: register-classification
+    path: handoff-sesh/register-classification.md
+    type: skill-artifact
+    producer: handoff-sesh
+    consumers: [build-sesh]
+    notes: Stage 2 output #1 — procedural vs. principle classification per instruction
+
+  - id: domain-references-dir
+    path: handoff-sesh/references/
+    type: skill-artifact
+    producer: handoff-sesh
+    consumers: [build-sesh]
+    notes: Stage 2 output #2 — domain reference files (only created if needed)
+
+  - id: test-cases
+    path: handoff-sesh/test-cases.md
+    type: skill-artifact
+    producer: handoff-sesh
+    consumers: [build-sesh]
+    notes: Stage 2 output #3 — happy path, friction path, and edge case scenarios
+
+  - id: verification-checklist
+    path: handoff-sesh/verification-checklist.md
+    type: skill-artifact
+    producer: handoff-sesh
+    consumers: [build-sesh, qa-sesh]
+    notes: Stage 2 output #4 — per-step failure mode checklist
+
+  - id: skill-md
+    path: SKILL.md
+    type: skill-artifact
+    producer: build-sesh
+    consumers: [qa-sesh]
+    notes: Stage 3 output — the final built skill; version-bumped by qa-sesh
+
+  - id: test-results-dir
+    path: build-sesh/workspace/test-results/
+    type: skill-artifact
+    producer: build-sesh
+    consumers: []
+    notes: Stage 3 workspace — one {run-label}.md per test run
+
+  - id: linter-reports-dir
+    path: build-sesh/workspace/linter-reports/
+    type: skill-artifact
+    producer: skill-calibrator
+    consumers: [build-sesh]
+    notes: Stage 3 workspace — linter-report files written by skill-calibrator, read by build-sesh
+
+  - id: changelog
+    path: CHANGELOG.md
+    type: skill-artifact
+    producer: qa-sesh
+    consumers: [skill-pipeline-orchestrator]
+    notes: Stage 4 output — prepended at skill root; orchestrator reads to detect repeat failures
+
+  - id: manual-qa-template
+    path: qa-sesh/v{version}/{skill-name}-v{version}-manual-qa.html
+    type: skill-artifact
+    producer: qa-sesh
+    consumers: []
+    substitutions: [version, skill-name]
+    notes: Stage 4 output — colored PASS/FAIL/N/A HTML template for manual QA
+
+  - id: version-archive
+    path: qa-sesh/v{version}/{skill-name}-v{version}-qa.zip
+    type: skill-artifact
+    producer: qa-sesh
+    consumers: []
+    substitutions: [version, skill-name]
+    notes: Stage 4 output — zip of all QA artifacts for this release; rollback target
+
+  - id: version-folder
+    path: qa-sesh/v{version}/
+    type: skill-artifact
+    producer: qa-sesh
+    consumers: []
+    substitutions: [version]
+    notes: Stage 4 container folder — all release artifacts live here
+
+  # ─── Plugin-shared (ships with the plugin, read-only at runtime) ─────────────
+
+  - id: canonical-paths
+    path: ${CLAUDE_PLUGIN_ROOT}/references/canonical-paths.yaml
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh, skill-pipeline-orchestrator, qa-sesh]
+    notes: This file — read at startup to resolve all canonical artifact paths by id
+
+  - id: pipeline-directory-map
+    path: ${CLAUDE_PLUGIN_ROOT}/references/pipeline-directory-map.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh, skill-pipeline-orchestrator, qa-sesh]
+    notes: Canonical path and naming conventions for both pipeline trees
+
+  - id: skill-writing-patterns
+    path: ${CLAUDE_PLUGIN_ROOT}/references/skill-writing-patterns.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [handoff-sesh, build-sesh]
+    notes: Quality patterns for gate levels, register classification, and instruction voice
+
+  - id: environment-instructions
+    path: ${CLAUDE_PLUGIN_ROOT}/references/environment-instructions.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, build-sesh]
+    notes: Environment-specific behavior differences (Cowork vs Claude.ai)
+
+  - id: verification-checklist-template
+    path: ${CLAUDE_PLUGIN_ROOT}/templates/verification-checklist-template.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [handoff-sesh]
+    notes: Template structure for Deliverable 4; handoff-sesh must read before generating
+
+  - id: subagent-briefings
+    path: ${CLAUDE_PLUGIN_ROOT}/skills/skill-pipeline-orchestrator/references/subagent-briefings.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [skill-pipeline-orchestrator]
+    notes: Complete briefing templates for Stage 2 (Prep) and Stage 4 (Release) subagents
+
+  - id: description-optimization
+    path: ${CLAUDE_PLUGIN_ROOT}/skills/build-sesh/references/description-optimization.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [build-sesh]
+    notes: 4-step workflow for optimizing skill trigger descriptions
+
+  - id: exemplar-readme
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/README.md
+    type: plugin-shared
+    producer: plugin
+    consumers: []
+    notes: Index of exemplar skills and when to use each
+
+  - id: exemplar-research-report
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/exemplar-research-report.md
+    type: plugin-shared
+    producer: plugin
+    consumers: []
+    notes: Example research report output for reference
+
+  - id: exemplar-gates
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/gates-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing 4-level gate strength pattern
+
+  - id: exemplar-reference-files
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/reference-files-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing how skills load reference material
+
+  - id: exemplar-user-interaction
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/user-interaction-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing numbered options with defaults and fallbacks
+
+  - id: exemplar-artifact
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/artifact-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh]
+    notes: Exemplar showing pattern for generating downloadable files
+
+  - id: exemplar-simple
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/simple-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [handoff-sesh, build-sesh]
+    notes: Exemplar showing minimal-but-complete skill layout
+
+  - id: pipeline-flow
+    path: ${CLAUDE_PLUGIN_ROOT}/references/pipeline-flow.html
+    type: plugin-shared
+    producer: plugin
+    consumers: []
+    notes: Visual flow diagram for the 5-stage pipeline; open in a browser
+
+  - id: smoke-test-script
+    path: ${CLAUDE_PLUGIN_ROOT}/scripts/smoke-test.py
+    type: plugin-shared
+    producer: plugin
+    consumers: []
+    notes: Pre-package static correctness checker; run from plugin root
+
+  - id: pre-package-check-script
+    path: ${CLAUDE_PLUGIN_ROOT}/scripts/pre-package-check.py
+    type: plugin-shared
+    producer: plugin
+    consumers: []
+    notes: Pre-package gate; runs smoke-test + version-alignment checks
+
+  - id: skill-calibrator-skill
+    path: ${CLAUDE_PLUGIN_ROOT}/skills/skill-calibrator/SKILL.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [build-sesh]
+    notes: Standalone linter skill — invoked by build-sesh via Skill tool after draft; user can invoke standalone
+
+  - id: exemplar-subagent
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/subagent-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing Agent tool orchestration — multi-stage sub-agents with per-agent model selection and context isolation
+
+  - id: exemplar-mcp
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/mcp-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing MCP tool calls — connectivity check, error handling, sequential calls, and MCP-unavailable fallback
+
+  - id: exemplar-composition
+    path: ${CLAUDE_PLUGIN_ROOT}/references/exemplar-skills/composition-skill.md
+    type: plugin-shared
+    producer: plugin
+    consumers: [planning-sesh, handoff-sesh, build-sesh]
+    notes: Exemplar showing skill composition via Skill tool — structured hand-off, inter-stage gate, and end-state summary

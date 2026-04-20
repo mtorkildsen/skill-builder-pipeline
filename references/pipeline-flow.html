@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Pipeline v3: Orchestrator → Design → Prep → Build → Release</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #fafbfc; color: #1a1a2e; padding: 40px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; color: #111827; }
+  .subtitle { text-align: center; color: #6b7280; font-size: 15px; margin-bottom: 12px; }
+  .version-badge { text-align: center; margin-bottom: 48px; }
+  .version-badge span { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; padding: 3px 10px; border-radius: 12px; background: #e0e7ff; color: #4338ca; font-weight: 600; }
+
+  .phase { margin-bottom: 48px; }
+  .phase-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .phase-number { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; color: #fff; }
+  .phase-title { font-size: 22px; font-weight: 600; }
+  .phase-meta { display: flex; gap: 16px; margin-left: 54px; margin-bottom: 18px; }
+  .phase-desc { font-size: 14px; color: #6b7280; line-height: 1.5; flex: 1; }
+  .phase-model { font-size: 12px; color: #6b7280; background: #f3f4f6; border-radius: 6px; padding: 4px 10px; height: fit-content; white-space: nowrap; font-weight: 500; }
+
+  /* Stage 0 — Orchestrator */
+  .phase-0 .phase-number { background: #374151; }
+  .phase-0 .phase-title { color: #374151; }
+  .phase-0 .step { border-left-color: #6b7280; }
+
+  /* Stage 1 — Design */
+  .phase-1 .phase-number { background: #2563eb; }
+  .phase-1 .phase-title { color: #1d4ed8; }
+  .phase-1 .step { border-left-color: #2563eb; }
+
+  /* Stage 2 — Prep */
+  .phase-2 .phase-number { background: #7c3aed; }
+  .phase-2 .phase-title { color: #6d28d9; }
+  .phase-2 .step { border-left-color: #7c3aed; }
+
+  /* Stage 3 — Build */
+  .phase-3 .phase-number { background: #059669; }
+  .phase-3 .phase-title { color: #047857; }
+  .phase-3 .step { border-left-color: #059669; }
+
+  /* Stage 4 — Release */
+  .phase-4 .phase-number { background: #dc2626; }
+  .phase-4 .phase-title { color: #b91c1c; }
+  .phase-4 .step { border-left-color: #dc2626; }
+  .phase-4 .gate { border-color: #dc2626; }
+
+  .steps { margin-left: 54px; display: flex; flex-direction: column; gap: 12px; }
+  .step { background: #ffffff; border-radius: 10px; padding: 16px 20px; border-left: 4px solid; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .step-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; margin-bottom: 4px; }
+  .step-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 4px; }
+  .step-detail { font-size: 13px; color: #6b7280; line-height: 1.5; }
+  .step-detail ul { margin: 6px 0 0 18px; }
+  .step-detail li { margin-bottom: 3px; }
+  .step-detail code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #4b5563; }
+  .step-detail strong { color: #374151; }
+
+  .gate { background: #fef3f2; border: 1px solid #fecaca; border-radius: 10px; padding: 16px 20px; border-left: 4px solid; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .phase-2 .gate { background: #faf5ff; border-color: #e9d5ff; border-left-color: #7c3aed; }
+  .phase-3 .gate { background: #f0fdf4; border-color: #bbf7d0; border-left-color: #059669; }
+  .phase-4 .gate { background: #fef3f2; border-color: #fecaca; border-left-color: #dc2626; }
+  .gate-badge { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; font-weight: 600; }
+  .phase-2 .gate-badge { background: #ede9fe; color: #6d28d9; }
+  .phase-3 .gate-badge { background: #dcfce7; color: #15803d; }
+  .phase-4 .gate-badge { background: #fee2e2; color: #b91c1c; }
+
+  .handoff { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 32px 0; padding: 14px; flex-wrap: wrap; }
+  .handoff-arrow { font-size: 28px; color: #9ca3af; }
+  .handoff-label { font-size: 13px; color: #6b7280; font-style: italic; }
+  .handoff-artifact { background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 8px; padding: 8px 16px; font-size: 13px; color: #475569; font-family: 'Fira Code', monospace, monospace; }
+  .handoff-via { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+  .checklist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; margin-top: 8px; }
+  .checklist-item { font-size: 12px; color: #6b7280; padding: 4px 8px; background: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; }
+  .checklist-item span { margin-right: 4px; }
+
+  .output-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px 18px; margin-top: 8px; }
+  .output-box .label { font-size: 11px; color: #15803d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+  .output-box .content { font-size: 13px; color: #166534; font-family: 'Fira Code', monospace, monospace; }
+
+  .loop-indicator { display: inline-flex; align-items: center; gap: 6px; background: #ede9fe; border: 1px solid #c4b5fd; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #6d28d9; margin-top: 8px; }
+  .loop-indicator svg { width: 14px; height: 14px; }
+
+  .escalation { display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #b91c1c; margin-top: 8px; }
+
+  .file-tree { font-family: 'Fira Code', monospace, monospace; font-size: 12px; color: #475569; background: #f8fafc; border-radius: 6px; padding: 12px 16px; margin-top: 8px; line-height: 1.6; white-space: pre; border: 1px solid #e2e8f0; }
+
+  .boundary-note { background: #fef3f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; margin-left: 54px; font-size: 13px; color: #991b1b; line-height: 1.5; }
+  .boundary-note strong { color: #b91c1c; }
+
+  .subagent-badge { display: inline-flex; align-items: center; gap: 4px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 12px; padding: 2px 10px; font-size: 11px; color: #1d4ed8; font-weight: 500; margin-left: 8px; }
+
+  .external-badge { display: inline-flex; align-items: center; gap: 4px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; padding: 2px 10px; font-size: 11px; color: #92400e; font-weight: 500; margin-left: 8px; }
+
+  .linter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .linter-item { font-size: 12px; color: #6b7280; padding: 4px 8px; background: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; }
+  .linter-item span { font-weight: 600; color: #374151; margin-right: 4px; }
+
+  .state-box { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-top: 8px; }
+  .state-box .label { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+  .state-box .content { font-size: 13px; color: #334155; font-family: 'Fira Code', monospace, monospace; }
+
+  .verify-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  .verify-table th { text-align: left; padding: 6px 10px; background: #f3f4f6; color: #374151; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
+  .verify-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; color: #6b7280; }
+  .verify-table code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Skill Pipeline: Design to Release</h1>
+<p class="subtitle">Orchestrator &rarr; Planning Sesh &rarr; Handoff Sesh &rarr; Build Sesh &rarr; QA Sesh</p>
+<div class="version-badge"><span>Plugin v1.0.1 &mdash; 5 Skills, 4 Stages + Orchestrator</span></div>
+
+<!-- STAGE 0: ORCHESTRATOR -->
+<div class="phase phase-0">
+  <div class="phase-header">
+    <div class="phase-number">0</div>
+    <div class="phase-title">Orchestrator &mdash; Pipeline Manager</div>
+  </div>
+  <div class="phase-meta">
+    <div class="phase-desc">Wraps the entire pipeline. Detects entry point, plans sessions, tracks state, verifies files before and after each stage, generates handoff prompts, and launches subagents with user approval. Does not write SKILL.md files &mdash; it manages the pipeline around the stages that do.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Initialize</div>
+      <div class="step-title">Read Pipeline References</div>
+      <div class="step-detail">Read <code>references/pipeline-directory-map.md</code> and <code>references/skill-writing-patterns.md</code> before doing anything else. These define path conventions and quality standards.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Entry Detection</div>
+      <div class="step-title">3 Entry Points</div>
+      <div class="step-detail">
+        <ul>
+          <li><strong>New skill</strong> &mdash; idea from scratch. Collect name + root, assess complexity (Low/Medium/High), generate build plan, initialize <code>pipeline-state.json</code></li>
+          <li><strong>Resume</strong> &mdash; pick up midstream. Read state file, verify output files for completed stages, resume from current stage</li>
+          <li><strong>Tweak</strong> &mdash; small change. Classify as patch (direct edit), minor revision (Stage 3 re-run), or major revision (Stage 1 re-run)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">State Tracking</div>
+      <div class="step-title">pipeline-state.json</div>
+      <div class="step-detail">
+        Tracks skill name, root, current stage, completed stages, stage outputs, version, model recommendation, and entry type. Updated after every stage completes.
+        <div class="state-box">
+          <div class="label">Stored At</div>
+          <div class="content">{skill-root}/pipeline-state.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Verification</div>
+      <div class="step-title">Pre/Post Stage File Checks</div>
+      <div class="step-detail">
+        Before launching any stage, verify required inputs exist. After completion, verify outputs exist before updating state.
+        <table class="verify-table">
+          <tr><th>Stage</th><th>Required Inputs</th><th>Required Outputs</th></tr>
+          <tr><td>1 Design</td><td>None</td><td><code>design/design-doc.md</code></td></tr>
+          <tr><td>2 Prep</td><td><code>design/design-doc.md</code></td><td><code>handoff-sesh/register-classification.md</code>, <code>test-cases.md</code>, <code>verification-checklist.md</code></td></tr>
+          <tr><td>3 Build</td><td>design-doc + all handoff-sesh deliverables</td><td><code>SKILL.md</code></td></tr>
+          <tr><td>4 Release</td><td><code>SKILL.md</code>, <code>verification-checklist.md</code></td><td><code>CHANGELOG.md</code>, <code>qa-template.html</code>, <code>.skill</code> package</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Subagent Protocol</div>
+      <div class="step-title">Announce Before Launch &mdash; Never Run Silently</div>
+      <div class="step-detail">
+        Stages 2 (Prep) and 4 (Release) run as subagents. Before launching:
+        <ul>
+          <li>Tell the user what the subagent will do, what it reads, what it produces</li>
+          <li>Ask for explicit approval</li>
+          <li><strong>STOP. Do not launch until confirmed.</strong></li>
+        </ul>
+        Briefing templates in <code>references/subagent-briefings.md</code>. Failures reported to user with retry/manual/abort options.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Failure Routing</div>
+      <div class="step-title">QA Failure &rarr; Targeted Build-Sesh Handoff</div>
+      <div class="step-detail">
+        When manual QA fails, generates a targeted handoff prompt listing only the failed items. Tracks cycle count in state file.
+        <div class="escalation">
+          &#x26A0; After 3 failure cycles, escalate: recommend revisiting Stage 1 (Design) before another revision
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HANDOFF: Orchestrator → Stage 1 -->
+<div class="handoff">
+  <div class="handoff-via">Orchestrator generates</div>
+  <div class="handoff-artifact">GRILL-ME HANDOFF prompt</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-label">User starts Stage 1 (interactive session)</div>
+</div>
+
+<!-- STAGE 1: GRILL ME (DESIGN) -->
+<div class="phase phase-1">
+  <div class="phase-header">
+    <div class="phase-number">1</div>
+    <div class="phase-title">Design &mdash; Planning Sesh Interview</div>
+    <span class="external-badge">Interactive &middot; Opus recommended</span>
+  </div>
+  <div class="phase-meta">
+    <div class="phase-desc">Turn a vague idea into a concrete, unambiguous design document through guided Q&amp;A. One question at a time, with options and tradeoffs at every turn.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Entry</div>
+      <div class="step-title">Capture the Rough Idea</div>
+      <div class="step-detail">User provides anything from a single sentence to a rough draft. Claude confirms understanding in 1&ndash;2 sentences.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Initialize</div>
+      <div class="step-title">Create Design Doc Artifact with 12-Item Checklist</div>
+      <div class="step-detail">
+        A live artifact is created with 12 checklist items, each marked &#x2B1C; (open). Items already answered from user input are marked &#x2705;.
+        <div class="checklist-grid">
+          <div class="checklist-item"><span>1.</span> What is it</div>
+          <div class="checklist-item"><span>2.</span> Actor &amp; goal</div>
+          <div class="checklist-item"><span>3.</span> Entry point</div>
+          <div class="checklist-item"><span>4.</span> Trigger / detection</div>
+          <div class="checklist-item"><span>5.</span> Main workflow steps</div>
+          <div class="checklist-item"><span>6.</span> User gates</div>
+          <div class="checklist-item"><span>7.</span> Plugins &amp; artifacts</div>
+          <div class="checklist-item"><span>8.</span> Output</div>
+          <div class="checklist-item"><span>9.</span> Ambiguous steps</div>
+          <div class="checklist-item"><span>10.</span> Edge cases</div>
+          <div class="checklist-item"><span>11.</span> Open questions</div>
+          <div class="checklist-item"><span>12.</span> Blockers</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Core Loop</div>
+      <div class="step-title">Guided Interview &mdash; One Question at a Time</div>
+      <div class="step-detail">
+        For each unresolved checklist item, Claude asks a question with:
+        <ul>
+          <li><strong>Why it matters</strong> &mdash; what goes wrong if left ambiguous</li>
+          <li><strong>A/B/C options</strong> &mdash; concrete choices with tradeoffs</li>
+          <li><strong>Recommendations</strong> when the user is stuck</li>
+        </ul>
+        Branches are surfaced and the user steers. Items get parked as Open Questions or Blockers if unresolvable.
+        <div class="loop-indicator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+          Repeats until all 12 items resolved or parked
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Output</div>
+      <div class="step-title">Finalized Design Document</div>
+      <div class="step-detail">
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">{skill-root}/design/design-doc.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HANDOFF: Stage 1 → Stage 2 -->
+<div class="handoff">
+  <div class="handoff-artifact">design/design-doc.md</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-via">Orchestrator launches subagent</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-label">Stage 2 runs automatically after user approval</div>
+</div>
+
+<!-- STAGE 2: BUILD HANDOFF (PREP) -->
+<div class="phase phase-2">
+  <div class="phase-header">
+    <div class="phase-number">2</div>
+    <div class="phase-title">Prep &mdash; Handoff Sesh</div>
+    <span class="subagent-badge">Subagent &middot; Sonnet recommended</span>
+  </div>
+  <div class="phase-meta">
+    <div class="phase-desc">Transform the design doc into 4 build-ready deliverables so build-sesh produces high-quality output on the first iteration without guessing. Progressive save after each deliverable &mdash; if the session crashes, completed work is on disk.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Setup</div>
+      <div class="step-title">Read Design Doc &amp; Flag Open Items</div>
+      <div class="step-detail">Read the full design document. Surface any Open Questions or Blockers for the user to resolve or explicitly defer before proceeding.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Deliverable 1</div>
+      <div class="step-title">Register Classification</div>
+      <div class="step-detail">
+        Single pass through every instruction in the design doc, asking three questions per item:
+        <ul>
+          <li><strong>Q1: Is the designer's intent clear?</strong> &mdash; resolves design ambiguity</li>
+          <li><strong>Q2: Is there only one way to implement?</strong> &mdash; writes explicit decision logic</li>
+          <li><strong>Q3: Procedure or Principle?</strong> &mdash; classifies register (rigid steps vs. flexible guidelines)</li>
+        </ul>
+        Plus <strong>Edge Case Routing</strong>: each edge case goes to one of three destinations:
+        <ul>
+          <li>Into the skill as a <em>principle</em> (reveals non-obvious design intent)</li>
+          <li>Into <em>test cases</em> (most go here &mdash; prove it works through testing)</li>
+          <li><em>Dropped</em> (defensive speculation that never occurs in practice)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Level 3 Gate</div>
+      <div class="step-title">STOP &mdash; User Approves Register Classification</div>
+      <div class="step-detail">
+        User reviews the full analysis. After approval:
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">handoff-sesh/register-classification.md</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Deliverable 2</div>
+      <div class="step-title">Reference File Research</div>
+      <div class="step-detail">
+        Identifies domain knowledge gaps that would cause inconsistent outputs. Uses <code>best-practices-researcher</code> skill to create each reference file (in parallel when possible). Structured for quick lookup &mdash; tables and headers, not prose. Skipped if no domain knowledge is needed.
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">handoff-sesh/references/{descriptive-name}.md</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Deliverable 3</div>
+      <div class="step-title">Test Cases with Mock Files</div>
+      <div class="step-detail">
+        3&ndash;5 realistic test scenarios covering:
+        <ul>
+          <li><strong>Happy path</strong> &mdash; standard workflow</li>
+          <li><strong>Friction path</strong> &mdash; non-standard inputs at every step (pick unexpected options, partial answers, nonstandard file paths)</li>
+          <li><strong>Edge cases</strong> &mdash; pulled from the routing table in Deliverable 1</li>
+        </ul>
+        Each includes: descriptive name, full mock file specs, user parameters, and specific verifiable expected outputs.
+      </div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Level 3 Gate</div>
+      <div class="step-title">STOP &mdash; User Approves Test Cases</div>
+      <div class="step-detail">
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">handoff-sesh/test-cases.md</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Deliverable 4</div>
+      <div class="step-title">Verification Checklist</div>
+      <div class="step-detail">
+        Per-step failure mode catalogue. Read <code>templates/verification-checklist-template.md</code> before generating. For each design doc step, populate:
+        <ul>
+          <li><strong>Gate compliance</strong> &mdash; current strength level + escalation path</li>
+          <li><strong>Step skipping risk</strong> &mdash; whether Claude might decide this step isn't needed</li>
+          <li><strong>Step merging risk</strong> &mdash; distinct steps that might get combined</li>
+          <li><strong>File hallucination</strong> &mdash; verify every file-producing step actually saves</li>
+          <li><strong>Reference drift</strong> &mdash; verify reference files are actually read</li>
+          <li><strong>Output format deviation</strong> &mdash; verify format requirements</li>
+          <li><strong>Artifact launch compliance</strong> &mdash; verify visual outputs launch correctly</li>
+        </ul>
+        Plus cross-cutting checks: happy path completion, friction path handling, session recovery, file inventory.
+      </div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Level 3 Gate</div>
+      <div class="step-title">STOP &mdash; User Approves Verification Checklist</div>
+      <div class="step-detail">
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">handoff-sesh/verification-checklist.md</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Output</div>
+      <div class="step-title">Complete Handoff Package</div>
+      <div class="step-detail">
+        <div class="file-tree">{skill-root}/
+  handoff-sesh/
+    register-classification.md
+    test-cases.md
+    verification-checklist.md
+    references/                  (only if domain research needed)
+      {descriptive-name}.md</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HANDOFF: Stage 2 → Stage 3 -->
+<div class="handoff">
+  <div class="handoff-artifact">handoff-sesh/ + design-doc.md</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-via">Orchestrator generates handoff prompt</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-label">User starts Stage 3 (interactive session)</div>
+</div>
+
+<!-- STAGE 3: SKILL CREATOR (BUILD) -->
+<div class="phase phase-3">
+  <div class="phase-header">
+    <div class="phase-number">3</div>
+    <div class="phase-title">Build &mdash; Build Sesh v2.0</div>
+    <span class="external-badge">Interactive &middot; Opus recommended</span>
+  </div>
+  <div class="phase-meta">
+    <div class="phase-desc">Write the SKILL.md, run the embedded linter, test with subagents, gather human feedback via eval viewer, improve, and repeat. Progressive save after every revision &mdash; if the session crashes, the last revision is on disk.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Read First</div>
+      <div class="step-title">Load Handoff-Sesh Deliverables</div>
+      <div class="step-detail">
+        Before writing or revising, read all 4 deliverables in order:
+        <ul>
+          <li><code>handoff-sesh/register-classification.md</code> &mdash; how to write each instruction</li>
+          <li><code>handoff-sesh/references/</code> &mdash; domain knowledge files</li>
+          <li><code>handoff-sesh/test-cases.md</code> &mdash; use these instead of generating your own</li>
+          <li><code>handoff-sesh/verification-checklist.md</code> &mdash; failure modes to watch for</li>
+        </ul>
+        If <code>handoff-sesh/</code> doesn't exist (skill built outside the pipeline), proceed with standard create-from-scratch workflow.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step A</div>
+      <div class="step-title">Capture Intent</div>
+      <div class="step-detail">Confirm what the skill does, when it triggers, expected output format, and whether test cases are needed. Much of this is already answered by the handoff package.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step B</div>
+      <div class="step-title">Write the SKILL.md Draft</div>
+      <div class="step-detail">
+        Produces the skill file with:
+        <ul>
+          <li><strong>Frontmatter</strong> &mdash; name, description (appropriately "pushy" for reliable triggering)</li>
+          <li><strong>Body</strong> &mdash; instructions under ~500 lines, using register classifications from handoff</li>
+          <li><strong>Bundled resources</strong> &mdash; scripts/, references/, assets/ as needed</li>
+        </ul>
+        Principles explain the <em>why</em>; procedures are explicit steps. Explain reasoning rather than relying on rigid MUSTs.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step C</div>
+      <div class="step-title">Save &rarr; Lint &rarr; Auto-Fix &rarr; Save</div>
+      <div class="step-detail">
+        <strong>Progressive save</strong> SKILL.md to disk immediately. Then run the 9-check linter against <code>skill-writing-patterns.md</code> and the exemplar skills:
+        <div class="linter-grid">
+          <div class="linter-item"><span>1.</span> Gate language strength</div>
+          <div class="linter-item"><span>2.</span> Progressive disclosure (&lt;500 lines)</div>
+          <div class="linter-item"><span>3.</span> Instruction voice (directive)</div>
+          <div class="linter-item"><span>4.</span> File output specificity</div>
+          <div class="linter-item"><span>5.</span> Weak language detection</div>
+          <div class="linter-item"><span>6.</span> Artifact launch method</div>
+          <div class="linter-item"><span>7.</span> Description field triggers</div>
+          <div class="linter-item"><span>8.</span> Reference file usage</div>
+          <div class="linter-item"><span>9.</span> Exemplar structural comparison</div>
+        </div>
+        <div style="margin-top: 8px;">Auto-fix unambiguous issues: weak gates before file writes &rarr; Level 3, "refer to" &rarr; explicit Read, descriptive voice &rarr; directive, missing verification &rarr; add it. Save again after auto-fixes. Judgment-call issues go in linter report for user.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step D</div>
+      <div class="step-title">Run Test Cases</div>
+      <div class="step-detail">
+        Use test cases from <code>handoff-sesh/test-cases.md</code>. For each test case, spawn subagents:
+        <ul>
+          <li><strong>First iteration only</strong> &mdash; baseline comparison (with-skill vs. without-skill) to confirm the skill adds value</li>
+          <li><strong>Subsequent iterations</strong> &mdash; with-skill only (user can request another baseline anytime)</li>
+        </ul>
+        While runs execute, draft quantitative assertions. Capture timing data from each completion notification.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step E</div>
+      <div class="step-title">Grade &amp; Launch Eval Viewer</div>
+      <div class="step-detail">
+        Grade each run against assertions (scripted checks preferred). Launch the eval viewer (<code>generate_review.py --static</code> in headless environments). User reviews outputs + linter report in the viewer, leaves feedback per test case. Cross-reference against <code>verification-checklist.md</code> while reviewing.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step F</div>
+      <div class="step-title">Improve the Skill (Anti-Degradation Triage)</div>
+      <div class="step-detail">
+        Each issue is classified before touching the skill:
+        <ul>
+          <li><strong>Knowledge gap</strong> &mdash; add a narrow rule <em>with reasoning</em></li>
+          <li><strong>Judgment gap</strong> &mdash; rewrite instruction to explain <em>why</em> and <em>when</em></li>
+          <li><strong>Behavioral regression</strong> &mdash; reconcile conflicting constraints into one principle</li>
+        </ul>
+        Constraint count stays stable across iterations. If it's growing, pause and consolidate.
+        <div class="loop-indicator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+          Steps B&ndash;F repeat: Write &rarr; Save &rarr; Lint &rarr; Fix &rarr; Save &rarr; Test &rarr; Review
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Output</div>
+      <div class="step-title">Stable SKILL.md + Workspace Artifacts</div>
+      <div class="step-detail">
+        <div class="file-tree">{skill-root}/
+  SKILL.md                                  (created/edited by build-sesh)
+  build-sesh/
+    evals/
+      evals.json                            (test definitions)
+    workspace/
+      test-results/
+        {run-label}.md                      (one per test run)
+      linter-reports/
+        {iteration-label}.md                (one per iteration)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HANDOFF: Stage 3 → Stage 4 -->
+<div class="handoff">
+  <div class="handoff-artifact">SKILL.md + revision summary</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-via">Orchestrator launches subagent</div>
+  <div class="handoff-arrow">&rarr;</div>
+  <div class="handoff-label">Stage 4 runs automatically after user approval</div>
+</div>
+
+<!-- STAGE 4: POST QA LOOP (RELEASE) -->
+<div class="phase phase-4">
+  <div class="phase-header">
+    <div class="phase-number">4</div>
+    <div class="phase-title">Release &mdash; QA Sesh</div>
+    <span class="subagent-badge">Subagent + Manual QA &middot; Sonnet recommended</span>
+  </div>
+  <div class="phase-meta">
+    <div class="phase-desc">The release pipeline. Enforces versioning, documents changes, generates a manual QA template as .docx, and packages into a distributable <code>.skill</code> file. 6 steps, 3 gates.</div>
+  </div>
+
+  <div class="boundary-note">
+    <strong>Responsibility boundary:</strong> QA Sesh ships skills &mdash; it does not fix them. The only writes to SKILL.md are metadata (version bump in the <code>metadata</code> block). If something fails, findings are reported for build-sesh to address.
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1</div>
+      <div class="step-title">Intake</div>
+      <div class="step-detail">Locate the skill directory, validate SKILL.md exists, parse frontmatter (<code>name</code>, <code>description</code>, <code>metadata.version</code>). Accept the revision summary as pasted text or file path. If summary is too vague, ask user to elaborate or fall back to auto-diffing.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2</div>
+      <div class="step-title">Version Bump</div>
+      <div class="step-detail">
+        Read current version from <code>metadata.version</code> in YAML frontmatter. Propose:
+        <ul>
+          <li><strong>Patch</strong> (x.x.+1) &mdash; Bug fixes, typos, formatting</li>
+          <li><strong>Minor</strong> (x.+1.0) &mdash; New features, new steps, expanded capabilities</li>
+          <li><strong>Major</strong> (+1.0.0) &mdash; Breaking changes, removed steps, restructured flow</li>
+        </ul>
+        First-ever build initializes at 1.0.0. Version stored in <code>metadata</code> block, not top-level frontmatter.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3</div>
+      <div class="step-title">Changelog</div>
+      <div class="step-detail">Create or update <code>CHANGELOG.md</code> at the skill root using Keep a Changelog categories (Added, Changed, Fixed, Removed, Deprecated, Security). Newest entries prepended. Confirm file exists after writing.</div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Gate 1 &mdash; Level 3</div>
+      <div class="step-title">Version + Changelog Confirmation</div>
+      <div class="step-detail">Present proposed version, change type classification with reasoning, and formatted changelog entry. User can confirm, override version level, edit wording, or reject. After confirmation: write version to SKILL.md frontmatter, write CHANGELOG.md, create <code>qa-sesh/v{version}/</code>.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4</div>
+      <div class="step-title">Manual QA Template (.docx)</div>
+      <div class="step-detail">
+        Read <code>handoff-sesh/verification-checklist.md</code> before generating. Cross-reference against SKILL.md to produce test cases covering every step's failure modes. The .docx template includes:
+        <ul>
+          <li>Header: skill name, date, version, model used</li>
+          <li>Test cases organized by workflow step (numbered: 1-1, 1-2, 2-1...)</li>
+          <li>PASS / FAIL / N/A columns with colored cell backgrounds</li>
+          <li><strong>Predetermined user answers for happy path</strong> &mdash; exact inputs at each gate</li>
+          <li><strong>Predetermined user answers for friction path</strong> &mdash; non-standard inputs at each step</li>
+          <li>Cross-cutting checks: happy path completion, friction path handling, session recovery, file inventory</li>
+        </ul>
+        Present using <code>present_files</code> tool so user can open directly.
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">qa-sesh/v{version}/qa-template.html</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Gate 2 &mdash; Level 3</div>
+      <div class="step-title">Manual QA Pass / Fail</div>
+      <div class="step-detail">
+        User tests the skill against the QA template.
+        <ul>
+          <li><strong>Pass</strong> &rarr; proceed to packaging</li>
+          <li><strong>Fail</strong> &rarr; log findings, route back to Stage 3 (Build Sesh) with specific failure details</li>
+        </ul>
+        <div class="escalation">
+          &#x26A0; After 3 consecutive failure cycles (patch bumps addressing similar issues), escalate: recommend revisiting Stage 1 design
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 5</div>
+      <div class="step-title">Package</div>
+      <div class="step-detail">Run <code>package_skill.py</code> from the <code>build-sesh-v11</code> sibling skill directory. Verify the <code>.skill</code> file was created successfully.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 6</div>
+      <div class="step-title">Archive</div>
+      <div class="step-detail">
+        Create version archive zip containing all files in the versioned folder. Confirm archive exists.
+        <div class="output-box">
+          <div class="label">Saved To</div>
+          <div class="content">qa-sesh/v{version}/{skill-name}-v{version}-qa.zip</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step gate">
+      <div class="gate-badge">Gate 3 &mdash; Level 3</div>
+      <div class="step-title">Final Summary</div>
+      <div class="step-detail">
+        Present: version number, all artifacts with paths, .skill package location, archive location. Present .skill file using <code>present_files</code> tool.
+        <div class="output-box">
+          <div class="label">Final Output Structure</div>
+          <div class="content"><div class="file-tree">{skill-root}/
+  SKILL.md                                  (version bumped in metadata block)
+  CHANGELOG.md                              (new entry prepended)
+  qa-sesh/
+    v{version}/
+      qa-template.html                      (manual QA with PASS/FAIL/N/A)
+      {skill-name}-v{version}-qa.zip        (version archive)
+  {skill-name}.skill                        (distributable package)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

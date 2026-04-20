@@ -1,0 +1,9 @@
+# Internal Claude Code instructions
+CLAUDE.md
+
+# Build artifacts — install via GitHub Releases, not source
+skill-pipeline.plugin
+skill-pipeline.zip
+
+# Internal design documents — not ready for public
+specs/
