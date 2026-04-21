@@ -113,7 +113,7 @@
 
 <h1>Skill Pipeline: Design to Release</h1>
 <p class="subtitle">Orchestrator &rarr; Planning Sesh &rarr; Handoff Sesh &rarr; Build Sesh &rarr; QA Sesh</p>
-<div class="version-badge"><span>Plugin v1.0.1 &mdash; 5 Skills, 4 Stages + Orchestrator</span></div>
+<div class="version-badge"><span>Plugin v1.9.0 &mdash; 5 Skills, 4 Stages + Orchestrator</span></div>
 
 <!-- STAGE 0: ORCHESTRATOR -->
 <div class="phase phase-0">
@@ -201,7 +201,7 @@
 <!-- HANDOFF: Orchestrator → Stage 1 -->
 <div class="handoff">
   <div class="handoff-via">Orchestrator generates</div>
-  <div class="handoff-artifact">GRILL-ME HANDOFF prompt</div>
+  <div class="handoff-artifact">PLANNING SESH HANDOFF prompt</div>
   <div class="handoff-arrow">&rarr;</div>
   <div class="handoff-label">User starts Stage 1 (interactive session)</div>
 </div>
@@ -568,7 +568,7 @@
     <span class="subagent-badge">Subagent + Manual QA &middot; Sonnet recommended</span>
   </div>
   <div class="phase-meta">
-    <div class="phase-desc">The release pipeline. Enforces versioning, documents changes, generates a manual QA template as .docx, and packages into a distributable <code>.skill</code> file. 6 steps, 3 gates.</div>
+    <div class="phase-desc">The release pipeline. Enforces versioning, documents changes, generates a manual QA template as .html, and packages into a distributable <code>.skill</code> file. 6 steps, 3 gates.</div>
   </div>
 
   <div class="boundary-note">
@@ -610,7 +610,7 @@
 
     <div class="step">
       <div class="step-label">Step 4</div>
-      <div class="step-title">Manual QA Template (.docx)</div>
+      <div class="step-title">Manual QA Template (.html)</div>
       <div class="step-detail">
         Read <code>handoff-sesh/verification-checklist.md</code> before generating. Cross-reference against SKILL.md to produce test cases covering every step's failure modes. The .docx template includes:
         <ul>
