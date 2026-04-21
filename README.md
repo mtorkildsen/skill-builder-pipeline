@@ -1,38 +1,63 @@
-# Skill Pipeline Plugin
+# Skill Builder Pipeline
 
-A 5-skill pipeline for building high-quality Claude skills: Design → Prep → Build → Release, with orchestration, state tracking, linting, and verification.
+A guided 5-stage pipeline for building high-quality Claude skills. Anthropic's built-in skill creator is a great starting point, but complex skills need more scaffolding — structured design, better test cases, quality calibration, and a proper release process. This pipeline fills that gap.
 
-## Stages
+Each stage is its own skill. You can run them individually or let the orchestrator manage the full flow.
 
-| Stage | Skill | Mode | Purpose |
-|-------|-------|------|---------|
-| 0 | **Orchestrator** | Interactive | Detects entry point, plans sessions, tracks state, launches subagents |
-| 1 | **Design** (planning-sesh) | Interactive | Design interview — produces `design/design-doc.md` |
-| 2 | **Prep** (handoff-sesh) | Subagent | Generates register classification, references, test cases, verification checklist |
-| 3 | **Build** (build-sesh) | Interactive | Writes SKILL.md with embedded linter, progressive save, and test iteration |
-| 4 | **Release** (qa-sesh) | Subagent + QA | Versions, generates .html QA template, packages .skill file |
+---
 
-## Getting Started
+## How to Install
 
-Say "build a skill" or "start the pipeline" to trigger the orchestrator. It will walk you through the full process.
+1. Download `skill-pipeline.zip` from the [latest release](../../releases/latest)
+2. In Cowork → Customize → Skills → `+` → upload the zip
 
-## Skills Included
+---
 
-- **planning-sesh** — Stage 1. Guided design interview that turns a rough idea into a buildable spec.
-- **skill-pipeline-orchestrator** — Entry point. Manages state, handoffs, and subagent execution.
-- **handoff-sesh** — Stage 2. Produces 4 deliverables from the design doc.
-- **build-sesh** — Stage 3. Writes and iterates on SKILL.md with linting.
-- **qa-sesh** — Stage 4. Versions, documents, QA templates, and packages.
+## The Pipeline
 
-## Shared References
+| Stage | Skill | What it does |
+|-------|-------|--------------|
+| 0 | `skill-pipeline-orchestrator` | Entry point — detects where you are, manages state, runs stages automatically or via handoff |
+| 1 | `planning-sesh` | Guided design interview — one question at a time until you have a complete, unambiguous spec |
+| 2 | `handoff-sesh` | Turns the design doc into build-ready materials: register classification, reference files, test cases, verification checklist |
+| 3 | `build-sesh` | Writes and iterates on SKILL.md with progressive saves and test runs |
+| 4 | `skill-calibrator` | Audits the finished skill against quality standards — auto-fixes what it can, flags the rest |
+| 5 | `qa-sesh` | Versions the skill, generates a QA template, and packages it for distribution |
 
-- `references/pipeline-directory-map.md` — Canonical path conventions for all stages
-- `references/skill-writing-patterns.md` — Instruction quality standards (gates, files, artifacts, voice)
-- `references/exemplar-skills/` — 4 curated exemplar skills for linter comparison
-- `templates/verification-checklist-template.md` — Per-step failure mode template
-- `references/pipeline-flow.html` — Visual pipeline flow diagram (open in a browser)
+---
+
+## How to Start
+
+**Run the full pipeline:**
+"run the pipeline" or "start the pipeline"
+
+**Jump to a specific stage:**
+- "let's start a planning sesh"
+- "let's start a handoff sesh"
+- "let's start a build sesh"
+- "calibrate this skill"
+- "let's start a qa sesh"
+
+---
+
+## What's Included
+
+- `skills/` — one folder per skill, each with a SKILL.md
+- `references/` — shared reference files used across stages
+- `references/exemplar-skills/` — 8 curated example skills showing different patterns
+- `references/canonical-paths.yaml` — single source of truth for all artifact paths
+- `scripts/` — pre-package validation scripts
+- `templates/` — verification checklist template
+
+---
 
 ## Requirements
 
 - Claude Code or Cowork with subagent support
 - The `best-practices-researcher` skill (used by handoff-sesh for reference file research)
+
+---
+
+## Background
+
+Built by [Michael Torkildsen](https://github.com/mtorkildsen). Designed to sit between Anthropic's basic skill creator and full TDD-style skill writing frameworks — structured enough to produce quality results, approachable enough to use on a regular basis.
