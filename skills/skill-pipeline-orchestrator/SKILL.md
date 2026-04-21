@@ -7,7 +7,7 @@ description: >
   (new skill, midstream resume, or small tweak), auto-invokes stage subagents with right-
   sized models (or generates copy-paste handoffs in fallback mode), tracks state, enforces
   Gate 1 and Gate 2, and handles /tweak fast path.
-  Trigger on: "build a skill", "start the pipeline", "resume my skill build", "/tweak",
+  Trigger on: "run the pipeline", "start the pipeline", "let's run the skill pipeline", "build a skill", "resume my skill build", "/tweak",
   "tweak a skill", "orchestrate", or any request to run multiple pipeline stages together.
 ---
 

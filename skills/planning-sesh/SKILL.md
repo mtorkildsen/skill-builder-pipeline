@@ -6,13 +6,14 @@ description: >
   Guided design interviewer that walks a user through every key decision for a skill
   or product idea — asking one question at a time with context, options, and tradeoffs
   so the user can decide even when they don't know the answer. Use this skill whenever
-  a user says "grill me", "stress-test my plan", "walk me through my design", "help me
-  think through this skill/app/feature", or has a rough idea they want to turn into a
-  buildable spec. Also trigger when a user pastes a rough draft and says "what am I
-  missing?" or "help me flesh this out." Output is a structured design document ready
-  to hand to handoff-sesh or use as a PRD foundation. Trigger aggressively: any
-  time someone wants to turn a vague idea into a concrete, unambiguous spec, this skill
-  is the right tool — even one sentence is enough to start. Also use when a user says
+  a user says "let's start a planning sesh", "planning sesh", "start a planning sesh",
+  "stress-test my plan", "walk me through my design", "help me think through this
+  skill/app/feature", or has a rough idea they want to turn into a buildable spec.
+  Also trigger when a user pastes a rough draft and says "what am I missing?" or
+  "help me flesh this out." Output is a structured design document ready to hand to
+  handoff-sesh or use as a PRD foundation. Trigger aggressively: any time someone
+  wants to turn a vague idea into a concrete, unambiguous spec, this skill is the
+  right tool — even one sentence is enough to start. Also use when a user says
   "run revision session", "apply QA changes", "revision mode", or any phrase conveying
   intent to process a revision-request doc into an existing design doc.
 ---

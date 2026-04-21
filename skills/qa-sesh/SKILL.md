@@ -7,7 +7,7 @@ description: >
   revising a SKILL.md — enforces versioning, changelog documentation, generates a
   manual QA template as .html with colored PASS/FAIL/N/A highlighting, and packages
   into a distributable .skill file with version archive. Use this skill whenever a user says
-  "run post QA", "post QA loop", "start post QA", "test and package this skill", or
+  "let's start a qa sesh", "qa sesh", "start a qa sesh", "run post QA", "post QA loop", "start post QA", "test and package this skill", or
   anything about versioning + testing + packaging a skill together. Also activate when
   a user asks about 2+ of: version bump, changelog, test cases, packaging, .skill file
   — offer to take over rather than auto-launching. This skill does NOT edit SKILL.md

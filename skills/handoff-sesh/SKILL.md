@@ -7,7 +7,7 @@ description: >
   support materials: register classification, reference file research, test cases
   with mock files, and a verification checklist. Use this skill whenever a user has
   finished designing a skill (via planning-sesh or any other method) and wants to prepare
-  it for building. Trigger on phrases like "prep for build", "build handoff", "get
+  it for building. Trigger on phrases like "let's start a handoff sesh", "handoff sesh", "start a handoff sesh", "prep for build", "build handoff", "get
   this ready for build-sesh", "handoff to builder", "prepare build materials",
   "prep the handoff", or any variation of "I have a design doc and want to get it
   ready to build." Also trigger when a user says "we're done designing, now what?"

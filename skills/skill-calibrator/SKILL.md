@@ -1,6 +1,6 @@
 ---
 name: skill-calibrator
-description: Audit any SKILL.md for writing-pattern violations, auto-fix unambiguous issues in place, and report findings needing human attention. Use when linting a SKILL.md before release, when build-sesh finishes a draft and needs a quality gate, or for a standalone audit of any skill regardless of how it was built. Invoke as /skill-calibrator <path> or ask to "lint this skill". Always invoke this skill when a SKILL.md draft is complete and needs a final check.
+description: Audit any SKILL.md for writing-pattern violations, auto-fix unambiguous issues in place, and report findings needing human attention. Use when a user says "calibrate this skill", "run the calibrator", "check this skill", when linting a SKILL.md before release, when build-sesh finishes a draft and needs a quality gate, or for a standalone audit of any skill regardless of how it was built. Invoke as /skill-calibrator <path> or ask to "calibrate this skill". Always invoke this skill when a SKILL.md draft is complete and needs a final check.
 metadata:
   version: "1.0.0"
 ---
