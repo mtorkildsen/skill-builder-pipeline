@@ -6,10 +6,10 @@ description: >
   The release pipeline for skills. Picks up after build-sesh finishes building or
   revising a SKILL.md — enforces versioning, changelog documentation, generates a
   manual QA template as .html with colored PASS/FAIL/N/A highlighting, and packages
-  into a distributable .skill file with version archive. Use this skill whenever a user says
+  into a distributable .zip file with version archive. Use this skill whenever a user says
   "let's start a qa sesh", "qa sesh", "start a qa sesh", "run post QA", "post QA loop", "start post QA", "test and package this skill", or
   anything about versioning + testing + packaging a skill together. Also activate when
-  a user asks about 2+ of: version bump, changelog, test cases, packaging, .skill file
+  a user asks about 2+ of: version bump, changelog, test cases, packaging, .zip file
   — offer to take over rather than auto-launching. This skill does NOT edit SKILL.md
   content (it tests, versions, documents, and packages — it doesn't fix). If something
   fails, it reports findings for build-sesh to address.
@@ -202,20 +202,15 @@ that's a repeated failure pattern.
 
 ### Step 5: Package
 
-Create the `.skill` package. Try `package_skill.py` first; fall back to manual zip if
-the script is not available.
+Create the `.zip` package for Cowork upload.
 
-**Option A — Script packaging:**
-Locate the `build-sesh` sibling skill in the same plugin, then look for
-`scripts/package_skill.py` inside it.
+**Why `.zip` and not `.skill`:** Cowork rejects `.skill` files. It also rejects flat
+zips (everything at the root) with the error "Zip must contain a top-level folder with
+all files inside it, including SKILL.md". The upload artifact must be a `.zip` with
+a single top-level folder named after the skill, containing SKILL.md and references/
+inside that folder.
 
-```bash
-python <build-sesh-dir>/scripts/package_skill.py <skill-path>
-```
-
-**Option B — Manual packaging (when script is unavailable):**
-Create a zip archive with `.skill` extension containing SKILL.md and all reference files,
-rooted under a `{skill-name}/` directory prefix:
+**Required layout:**
 
 ```
 {skill-name}/
@@ -226,11 +221,35 @@ rooted under a `{skill-name}/` directory prefix:
     ...
 ```
 
-Do NOT include build artifacts, test results, qa-sesh/, design/, archive/, or any
-non-runtime files. Only include files the skill needs at execution time.
+**Build it with Python's `zipfile` module** — never PowerShell Compress-Archive (it
+writes backslash paths which Cowork rejects). Forward slashes only.
 
-Save to `qa-sesh/v{version}/{skill-name}.skill`.
-Verify the .skill file was created successfully and list its contents.
+```python
+import zipfile, os
+skill = '{skill-name}'  # actual skill name
+version = '{version}'   # actual version
+target = f'qa-sesh/v{version}/{skill}.zip'
+with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as zf:
+    zf.write('SKILL.md', f'{skill}/SKILL.md')
+    for f in sorted(os.listdir('references')):
+        if f.endswith('.md'):
+            zf.write(f'references/{f}', f'{skill}/references/{f}')
+```
+
+If the skill has additional runtime folders (e.g. `scripts/`, `assets/`), include
+those too — but ONLY runtime resources.
+
+**Do NOT include:** build artifacts, test results, `qa-sesh/`, `design/`, `archive/`,
+`handoff-sesh/`, `tdd-workspace/`, `artifact/`, `trigger-eval*`, `CHANGELOG.md`,
+drafts, notes, or any non-runtime files.
+
+Save to `qa-sesh/v{version}/{skill-name}.zip`.
+
+Verify the zip:
+- Every entry starts with `{skill-name}/`
+- All paths use forward slashes (no backslashes)
+- No `trigger-eval*`, no `qa-sesh/`, no `archive/`, no `tdd-workspace/` paths inside
+- SKILL.md inside the zip declares the correct version in its frontmatter
 
 ### Step 6: Archive
 
@@ -240,15 +259,20 @@ Create `{skill-name}-v{version}-qa.zip` containing all files in the versioned fo
 Save the archive to `qa-sesh/v{version}/{skill-name}-v{version}-qa.zip`.
 After saving, confirm the archive file exists.
 
+**This archive is a version snapshot, not the Cowork upload artifact.** It uses a
+flat layout (HTML and zips at the root), which Cowork rejects with the top-level-folder
+error. The Cowork upload is the `.zip` from Step 5. Never instruct the user to upload
+this archive.
+
 ### → Gate 3: Final Summary
 
 Present a final summary:
 - Version number
 - All artifacts produced with paths (relative to skill root)
-- The .skill package file location
-- The archive location
+- The .zip package file location (the Cowork upload artifact from Step 5)
+- The archive location (the version snapshot from Step 6 — not for upload)
 
-Present the `.skill` package file using the `present_files` tool so the user can install
+Present the `.zip` package file using the `present_files` tool so the user can install
 it directly. If `present_files` is not available, provide a `computer://` link.
 
 **STOP. Wait for the user to confirm the release is complete.**
@@ -267,8 +291,8 @@ This stage writes to:
   qa-sesh/
     v{version}/
       {skill-name}-v{version}-manual-qa.html            ← manual QA template (.html)
-      {skill-name}.skill                                ← distributable package
-      {skill-name}-v{version}-qa.zip                    ← version archive
+      {skill-name}.zip                                  ← Cowork upload artifact
+      {skill-name}-v{version}-qa.zip                    ← version snapshot (NOT for upload)
 ```
 
 The versioned folder is the core organizational unit. Every artifact from Steps 4–6

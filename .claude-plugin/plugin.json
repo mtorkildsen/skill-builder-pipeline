@@ -1,6 +1,6 @@
 {
   "name": "skill-pipeline",
-  "version": "1.9.0",
+  "version": "1.9.2",
   "description": "A 5-skill pipeline for building high-quality Claude skills: Design (planning-sesh) → Prep (handoff-sesh) → Build (build-sesh) → Release (qa-sesh), with orchestration, state tracking, linting, and verification.",
   "author": {
     "name": "Michael Torkildsen"
